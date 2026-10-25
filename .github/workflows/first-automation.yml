@@ -1,17 +1,24 @@
+
 name: My First Automation
+
 on:
-push:
-branches: [main]
-workflow_dispatch:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
 permissions:
-contents: read
+  contents: read
+
 jobs:
-hello:
-runs-on: ubuntu-24.04
-steps:
-- name: Welcome
-run: echo "Hello Pulse Developers!"
-- name: UTC Date
-run: date -u
-- name: Linux Runner
-run: uname -a
+  hello:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Welcome
+        run: echo "Hello Pulse Developers!"
+
+      - name: UTC Date
+        run: date -u
+
+      - name: Linux Runner
+        run: uname -a
