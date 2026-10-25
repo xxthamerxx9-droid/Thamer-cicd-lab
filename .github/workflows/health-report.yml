@@ -1,0 +1,35 @@
+name: Pulse Operational Health Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  health-report:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Start Pulse
+        run: |
+          python -m app.server > server.log 2>&1 &
+          curl --retry 10 --retry-delay 1 --retry-connrefused -fsS http://127.0.0.1:8000/health
+
+      - name: Generate Report
+        run: python scripts/health_report.py
+
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulse-health-report
+          path: reports/health-report.md
+          if-no-files-found: error
