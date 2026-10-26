@@ -1,0 +1,69 @@
+name: Pulse Controlled Release Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Choose the destination'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+      image_tag:
+        description: 'Published image tag (latest or full commit SHA)'
+        required: true
+        default: latest
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-record:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Check inputs and demo secret presence
+        env:
+          TARGET: ${{ inputs.target }}
+          TAG: ${{ inputs.image_tag }}
+          DEMO_TOKEN: ${{ secrets.DEMO_RELEASE_TOKEN }}
+        run: |
+          test "$TARGET" = staging -o "$TARGET" = production
+          test -n "$TAG"
+          if [ -n "$DEMO_TOKEN" ]; then
+            echo 'Training secret is configured'
+          else
+            echo 'Training secret missing'
+            exit 1
+          fi
+          echo "Target: $TARGET; image tag: $TAG"
+
+      - name: Validate image exists
+        env:
+          TAG: ${{ inputs.image_tag }}
+        run: docker pull "ghcr.io/${GITHUB_REPOSITORY,,}:${TAG}"
+
+      - name: Build release evidence
+        env:
+          TARGET: ${{ inputs.target }}
+          TAG: ${{ inputs.image_tag }}
+        run: |
+          mkdir -p reports
+          echo '# Release Plan' > reports/release-plan.md
+          echo '' >> reports/release-plan.md
+          echo "Target: $TARGET" >> reports/release-plan.md
+          echo '' >> reports/release-plan.md
+          echo "Image: $TAG" >> reports/release-plan.md
+          echo '' >> reports/release-plan.md
+          echo 'Status: validated (NOT deployed)' >> reports/release-plan.md
+          cat reports/release-plan.md
+
+      - name: Upload release plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: pulse-release-plan
+          path: reports/release-plan.md
+          if-no-files-found: error
