@@ -1,0 +1,21 @@
+name: Pulse Security Scan
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Scan Docker Image with Trivy
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: image
+          image-ref: ghcr.io/xxthamerxx9-droid/thamer-cicd-lab:latest
+          format: table
+          severity: HIGH,CRITICAL
+          exit-code: '0'
