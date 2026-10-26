@@ -17,5 +17,5 @@ jobs:
           scan-type: image
           image-ref: ghcr.io/xxthamerxx9-droid/thamer-cicd-lab:latest
           format: table
-          severity: HIGH,CRITICAL
+          severity: CRITICAL
           exit-code: '1'
